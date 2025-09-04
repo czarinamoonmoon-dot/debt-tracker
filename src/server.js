@@ -4,11 +4,18 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, '../data/masterlist.json');
 
 app.use(bodyParser.json());
+
+// Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
+
+// Serve index.html for root
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 function readMasterlist() {
   if (!fs.existsSync(DATA_FILE)) return [];
