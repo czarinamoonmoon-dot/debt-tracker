@@ -1,0 +1,71 @@
+    <!-- Confirm Delete Modal for Row -->
+    <div id="confirm-row-delete-modal" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);align-items:center;justify-content:center;z-index:1100;">
+      <div style="background:#fff;padding:2em 2em 1em 2em;border-radius:12px;min-width:300px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.12);display:flex;flex-direction:column;gap:1em;align-items:center;">
+        <h3>Confirm Delete</h3>
+        <p>Are you sure you want to delete this row?</p>
+        <div style="display:flex;gap:1em;">
+          <button id="confirm-row-delete-btn" style="background:#ef4444;color:#fff;font-weight:bold;border:none;padding:0.5em 1.2em;border-radius:6px;cursor:pointer;">Confirm Delete</button>
+          <button id="cancel-row-delete-btn" style="background:#eee;color:#222;font-weight:bold;border:none;padding:0.5em 1.2em;border-radius:6px;cursor:pointer;">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <!-- Popup for adding row -->
+    <div id="tchart-popup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.3); align-items:center; justify-content:center; z-index:2000;">
+      <div style="background:#fff; padding:2em; border-radius:16px; min-width:300px; box-shadow:0 2px 16px rgba(0,0,0,0.12); display:flex; flex-direction:column; gap:1em; align-items:center;">
+        <h3 id="popup-title">Add Row</h3>
+        <input type="date" id="popup-date" style="width:90%;padding:0.5em;">
+        <input type="text" id="popup-title-input" placeholder="Title" style="width:90%;padding:0.5em;">
+        <input type="number" id="popup-amount" placeholder="$" style="width:90%;padding:0.5em;">
+        <select id="popup-currency" style="width:90%;padding:0.5em;">
+          <option value="HKD">HKD</option>
+          <option value="USD">USD</option>
+          <option value="CNY">CNY</option>
+          <option value="EUR">EUR</option>
+          <option value="JPY">JPY</option>
+          <option value="GBP">GBP</option>
+          <option value="KRW">KRW</option>
+          <option value="AUD">AUD</option>
+          <option value="CAD">CAD</option>
+        </select>
+  <button id="popup-save" style="background:#1976d2;color:#fff;border:none;border-radius:20px;padding:0.5em 1.2em;cursor:pointer;font-size:1em;">Save</button>
+  <button id="popup-delete" style="background:#e53935;color:#fff;border:none;border-radius:20px;padding:0.5em 1.2em;cursor:pointer;font-size:1em;">Delete</button>
+        <button id="popup-cancel" style="background:#ccc;color:#333;border:none;border-radius:20px;padding:0.5em 1.2em;cursor:pointer;font-size:1em;">Cancel</button>
+      </div>
+  </div>
+  <div id="tchart-summary" style="margin-top:2em; font-size:1.2em; font-weight:500; text-align:center;"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friend Details</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="fd-container">
+    <button onclick="window.location.href='all-friends.html'" class="afm-back-btn" style="margin-bottom:1em;"><span style="font-size:1.3em;">&#8592;</span>Back to Masterlist</button>
+    <div style="display:flex;align-items:center;gap:1em;margin-bottom:1em;justify-content:center;">
+  <img id="fd-friend-pic" src="" alt="Friend Pic" style="width:90px;height:90px;border-radius:50%;object-fit:cover;">
+      <h2 id="fd-friend-name" style="margin:0;"></h2>
+    </div>
+    <div class="fd-table-wrapper">
+      <table class="fd-table tchart-table">
+        <thead>
+          <tr>
+            <th colspan="3" style="background:#aef7ae; color:#222; font-size:1.1em;">I paid <button id="add-paid" class="tchart-add">+</button></th>
+              <th colspan="3" style="background:#aef7ae; color:#222; font-size:1.1em;">I owe bro / bro paid <button id="add-owe" class="tchart-add">+</button></th>
+          </tr>
+          <tr>
+            <th>Date</th><th>Title</th><th>$</th>
+            <th>Date</th><th>Title</th><th>$</th>
+          </tr>
+        </thead>
+        <tbody id="fd-table-body">
+          <!-- Transactions will be rendered here -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

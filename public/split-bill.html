@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Split Bill</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: linear-gradient(135deg,#7f5af0 0%,#60a5fa 100%);
+    }
+    .split-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      max-width: 480px;
+      margin: 4em auto;
+      padding: 2em 2em 1em 2em;
+      display: flex;
+      flex-direction: column;
+      gap: 2em;
+    }
+    .split-navbar {
+      display: flex;
+      justify-content: center;
+      gap: 2em;
+      margin-bottom: 2em;
+    }
+    .split-tab {
+      background: #e0e7ff;
+      color: #222;
+      border: none;
+      border-radius: 8px 8px 0 0;
+      padding: 0.7em 2em;
+      font-weight: bold;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .split-tab.active {
+      background: #60a5fa;
+      color: #fff;
+    }
+    .split-content {
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2em;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="split-container">
+    <div style="display:flex;justify-content:center;gap:1em;margin-bottom:1em;">
+  <!-- Removed duplicate currency dropdown, will be rendered in forms below tabs -->
+    </div>
+    <div style="display:flex;justify-content:center;gap:1em;margin-bottom:1em;">
+      <button onclick="window.location.href='index.html'" style="background:#7f5af0;color:#fff;font-weight:bold;border:none;padding:0.6em 1.5em;border-radius:8px;cursor:pointer;font-size:1em;">Back to Front Page</button>
+      <button onclick="window.location.href='all-friends.html'" style="background:#60a5fa;color:#fff;font-weight:bold;border:none;padding:0.6em 1.5em;border-radius:8px;cursor:pointer;font-size:1em;">Back to All Friends</button>
+    </div>
+    <div class="split-navbar">
+      <button class="split-tab active" id="tab-equal">Split Equally</button>
+      <button class="split-tab" id="tab-diff">Different Amount</button>
+    </div>
+    <div class="split-content" id="split-content">
+      <!-- Split Equally Form -->
+      <form id="split-equally-form" style="width:100%;display:flex;flex-direction:column;gap:1em;">
+        <input type="text" id="split-title" placeholder="Title" style="padding:0.5em;font-size:1em;">
+        <input type="date" id="split-date" style="padding:0.5em;font-size:1em;">
+        <input type="number" id="split-total" placeholder="Total Amount" min="0" step="0.01" style="padding:0.5em;font-size:1em;">
+        <input type="number" id="split-num" placeholder="No. of People" min="2" step="1" style="padding:0.5em;font-size:1em;">
+        <div style="display:flex;flex-direction:column;gap:0.5em;">
+          <label style="font-weight:bold;">Select Friends:</label>
+          <div id="split-friends-list" style="display:flex;flex-wrap:wrap;gap:0.5em;"></div>
+        </div>
+        <div style="display:flex;gap:1em;align-items:center;">
+          <label><input type="radio" name="split-type" value="paid" checked> I paid</label>
+          <label><input type="radio" name="split-type" value="owe"> I owe bro</label>
+        </div>
+        <button type="submit" style="background:#60a5fa;color:#fff;font-weight:bold;border:none;padding:0.7em 1.5em;border-radius:8px;cursor:pointer;font-size:1.1em;align-self:center;">Split!</button>
+      </form>
+      <div id="split-result" style="margin-top:1em;color:#22c55e;font-weight:bold;text-align:center;"></div>
+    </div>
+  </div>
+  <script>
+    const tabEqual = document.getElementById('tab-equal');
+    const tabDiff = document.getElementById('tab-diff');
+    const splitContent = document.getElementById('split-content');
+    // Helper: get friends from localStorage
+    const currentUser = localStorage.getItem('currentUser');
+    function getFriends() {
+      return JSON.parse(localStorage.getItem(`friends_${currentUser}`) || '[]');
+    }
+    // Helper: shuffle array
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+    // Render split equally form
+    function renderSplitEqually() {
+      splitContent.innerHTML = `
+        <form id="split-equally-form" style="width:100%;display:flex;flex-direction:column;gap:1em;">
+          <div style="display:flex;justify-content:center;gap:1em;">
+            <label for="currency-select" style="font-weight:bold;">Currency:</label>
+            <select id="currency-select" style="padding:0.5em;font-size:1em;border-radius:6px;">
+              <option value="HKD">HKD</option>
+              <option value="USD">USD</option>
+              <option value="CNY">CNY</option>
+              <option value="EUR">EUR</option>
+              <option value="JPY">JPY</option>
+              <option value="GBP">GBP</option>
+              <option value="KRW">KRW</option>
+              <option value="AUD">AUD</option>
+              <option value="CAD">CAD</option>
+            </select>
+          </div>
+          <input type="text" id="split-title" placeholder="Title" style="padding:0.5em;font-size:1em;">
+          <input type="date" id="split-date" style="padding:0.5em;font-size:1em;">
+          <input type="number" id="split-total" placeholder="Total Amount" min="0" step="0.01" style="padding:0.5em;font-size:1em;">
+          <input type="number" id="split-num" placeholder="No. of People (including yourself if needed)" min="2" step="1" style="padding:0.5em;font-size:1em;">
+          <div style="display:flex;flex-direction:column;gap:0.5em;">
+            <div style="display:flex;align-items:center;gap:1em;">
+              <label style="font-weight:bold;">Select Friends:</label>
+              <input type="text" id="split-friends-search" placeholder="Search friends..." style="padding:0.4em 0.8em;font-size:1em;border-radius:6px;border:1px solid #ccc;">
+            </div>
+            <div id="split-friends-list" style="display:flex;flex-wrap:wrap;gap:0.5em;"></div>
+          </div>
+          <div style="display:flex;gap:1em;align-items:center;">
+            <label><input type="radio" name="split-type" value="paid" checked> I paid</label>
+            <label><input type="radio" name="split-type" value="owe"> I owe bro</label>
+          </div>
+          <button type="submit" style="background:#60a5fa;color:#fff;font-weight:bold;border:none;padding:0.7em 1.5em;border-radius:8px;cursor:pointer;font-size:1.1em;align-self:center;">Split!</button>
+          <div id="split-result" style="margin-top:1em;color:#22c55e;font-weight:bold;text-align:center;"></div>
+        </form>
+      `;
+      // Render friends checkboxes
+      const friends = getFriends();
+      const friendsList = document.getElementById('split-friends-list');
+      friendsList.innerHTML = '';
+      function renderFriendCheckboxes(filter = '') {
+        friendsList.innerHTML = '';
+        friends.filter(f => f.name.toLowerCase().includes(filter.toLowerCase())).forEach(f => {
+          const label = document.createElement('label');
+          label.style.display = 'flex';
+          label.style.alignItems = 'center';
+          label.style.gap = '0.3em';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.value = f.name;
+          cb.style.width = '22px';
+          cb.style.height = '22px';
+          label.appendChild(cb);
+          const img = document.createElement('img');
+          img.src = f.pic;
+          img.alt = f.name;
+          img.style.width = '28px';
+          img.style.height = '28px';
+          img.style.borderRadius = '50%';
+          img.style.objectFit = 'cover';
+          label.appendChild(img);
+          label.appendChild(document.createTextNode(f.name));
+          friendsList.appendChild(label);
+        });
+      }
+      renderFriendCheckboxes();
+      document.getElementById('split-friends-search').oninput = function(e) {
+        renderFriendCheckboxes(e.target.value);
+      };
+      // Form logic
+      document.getElementById('split-equally-form').onsubmit = function(e) {
+        e.preventDefault();
+        const title = document.getElementById('split-title').value.trim();
+        const date = document.getElementById('split-date').value;
+        const total = parseFloat(document.getElementById('split-total').value);
+        const currency = document.getElementById('currency-select').value;
+        const num = parseInt(document.getElementById('split-num').value);
+        const type = document.querySelector('input[name="split-type"]:checked').value;
+        const checked = Array.from(document.querySelectorAll('#split-friends-list input[type=checkbox]:checked')).map(cb => cb.value);
+        if (!title || !date || !total || !num || checked.length < 1) {
+          document.getElementById('split-result').textContent = 'Please fill all fields and select friends.';
+          document.getElementById('split-result').style.color = '#ef4444';
+          return;
+        }
+        // Currency conversion rates to HKD
+        const rates = { HKD: 1, USD: 7.8, CNY: 1.08, EUR: 8.5, JPY: 0.054, GBP: 9.9, KRW: 0.006, AUD: 5.1, CAD: 5.7 };
+        const eachRaw = total / num;
+        const eachHKD = (eachRaw * rates[currency]).toFixed(2);
+        // Update tcharts for each friend (per user)
+        let tcharts = JSON.parse(localStorage.getItem(`tcharts_${currentUser}`) || '{}');
+        checked.forEach(friendName => {
+          if (!tcharts[friendName]) tcharts[friendName] = { paid: [], owe: [] };
+          if (type === 'paid') {
+            tcharts[friendName].paid.push({ date, title, amount: eachHKD });
+          } else {
+            tcharts[friendName].owe.push({ date, title, amount: eachHKD });
+          }
+        });
+        localStorage.setItem(`tcharts_${currentUser}`, JSON.stringify(tcharts));
+        // Update pick a friend table (recentFriends)
+        let recent = shuffle([...checked]).slice(0, 3);
+        localStorage.setItem('recentFriends', JSON.stringify(recent));
+        document.getElementById('split-result').textContent = `Split successful! Each friend: $${eachHKD} HKD`;
+        document.getElementById('split-result').style.color = '#22c55e';
+      };
+    }
+    tabEqual.onclick = function() {
+      tabEqual.classList.add('active');
+      tabDiff.classList.remove('active');
+      renderSplitEqually();
+    };
+    tabDiff.onclick = function() {
+      tabDiff.classList.add('active');
+      tabEqual.classList.remove('active');
+      // Render different amount form
+      const friends = getFriends();
+      splitContent.innerHTML = `
+        <form id="split-diff-form" style="width:100%;display:flex;flex-direction:column;gap:1em;">
+          <div style="display:flex;justify-content:center;gap:1em;">
+            <label for="diff-currency-select" style="font-weight:bold;">Currency:</label>
+            <select id="diff-currency-select" style="padding:0.5em;font-size:1em;border-radius:6px;">
+              <option value="HKD">HKD</option>
+              <option value="USD">USD</option>
+              <option value="CNY">CNY</option>
+              <option value="EUR">EUR</option>
+              <option value="JPY">JPY</option>
+              <option value="GBP">GBP</option>
+              <option value="KRW">KRW</option>
+              <option value="AUD">AUD</option>
+              <option value="CAD">CAD</option>
+            </select>
+          </div>
+          <input type="text" id="diff-title" placeholder="Title" style="padding:0.5em;font-size:1em;">
+          <input type="date" id="diff-date" style="padding:0.5em;font-size:1em;">
+          <div style="display:flex;flex-direction:column;gap:0.5em;">
+            <div style="display:flex;align-items:center;gap:1em;">
+              <label style="font-weight:bold;">Select Friends & Amounts:</label>
+              <input type="text" id="diff-friends-search" placeholder="Search friends..." style="padding:0.4em 0.8em;font-size:1em;border-radius:6px;border:1px solid #ccc;">
+            </div>
+            <div id="diff-friends-list" style="display:flex;flex-direction:column;gap:0.5em;"></div>
+          </div>
+          <div style="display:flex;gap:1em;align-items:center;">
+            <label><input type="radio" name="diff-type" value="paid" checked> I paid</label>
+            <label><input type="radio" name="diff-type" value="owe"> I owe bro</label>
+          </div>
+          <button type="submit" style="background:#60a5fa;color:#fff;font-weight:bold;border:none;padding:0.7em 1.5em;border-radius:8px;cursor:pointer;font-size:1.1em;align-self:center;">Split!</button>
+          <div id="diff-result" style="margin-top:1em;color:#22c55e;font-weight:bold;text-align:center;"></div>
+        </form>
+      `;
+      // Render friends rows
+      const friendsList = document.getElementById('diff-friends-list');
+      friendsList.innerHTML = '';
+      function renderFriendRows(filter = '') {
+        friendsList.innerHTML = '';
+        friends.filter(f => f.name.toLowerCase().includes(filter.toLowerCase())).forEach(f => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.gap = '0.7em';
+          const cb = document.createElement('input');
+          cb.type = 'checkbox';
+          cb.value = f.name;
+          cb.style.width = '22px';
+          cb.style.height = '22px';
+          row.appendChild(cb);
+          const img = document.createElement('img');
+          img.src = f.pic;
+          img.alt = f.name;
+          img.style.width = '28px';
+          img.style.height = '28px';
+          img.style.borderRadius = '50%';
+          img.style.objectFit = 'cover';
+          row.appendChild(img);
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = f.name;
+          nameSpan.style.minWidth = '80px';
+          row.appendChild(nameSpan);
+          const amt = document.createElement('input');
+          amt.type = 'number';
+          amt.placeholder = 'Amount';
+          amt.min = '0';
+          amt.step = '0.01';
+          amt.style.padding = '0.3em';
+          amt.style.fontSize = '1em';
+          amt.style.width = '90px';
+          row.appendChild(amt);
+          friendsList.appendChild(row);
+        });
+      }
+      renderFriendRows();
+      document.getElementById('diff-friends-search').oninput = function(e) {
+        renderFriendRows(e.target.value);
+      };
+      // Form logic
+      document.getElementById('split-diff-form').onsubmit = function(e) {
+        e.preventDefault();
+        const title = document.getElementById('diff-title').value.trim();
+        const date = document.getElementById('diff-date').value;
+        const type = document.querySelector('input[name="diff-type"]:checked').value;
+        const checkedRows = Array.from(document.querySelectorAll('#diff-friends-list > div')).filter(row => row.querySelector('input[type=checkbox]').checked);
+        if (!title || !date || checkedRows.length < 1) {
+          document.getElementById('diff-result').textContent = 'Please fill all fields and select friends.';
+          document.getElementById('diff-result').style.color = '#ef4444';
+          return;
+        }
+        // Currency conversion rates to HKD
+        const rates = { HKD: 1, USD: 7.8, CNY: 1.08, EUR: 8.5, JPY: 0.054, GBP: 9.9, KRW: 0.006, AUD: 5.1, CAD: 5.7 };
+        // Update tcharts for each friend (per user)
+        let tcharts = JSON.parse(localStorage.getItem(`tcharts_${currentUser}`) || '{}');
+        let involved = [];
+        checkedRows.forEach(row => {
+          const friendName = row.querySelector('input[type=checkbox]').value;
+          const amount = parseFloat(row.querySelector('input[type=number]').value);
+          if (!friendName || isNaN(amount) || amount <= 0) return;
+          involved.push(friendName);
+          if (!tcharts[friendName]) tcharts[friendName] = { paid: [], owe: [] };
+          const currency = document.getElementById('diff-currency-select').value;
+          const amountHKD = (amount * rates[currency]).toFixed(2);
+          if (type === 'paid') {
+            tcharts[friendName].paid.push({ date, title, amount: amountHKD });
+          } else {
+            tcharts[friendName].owe.push({ date, title, amount: amountHKD });
+          }
+        });
+        localStorage.setItem(`tcharts_${currentUser}`, JSON.stringify(tcharts));
+        // Update pick a friend table (recentFriends)
+        let recent = shuffle([...involved]).slice(0, 3);
+        localStorage.setItem('recentFriends', JSON.stringify(recent));
+        document.getElementById('diff-result').textContent = `Split successful! All amounts saved in HKD.`;
+        document.getElementById('diff-result').style.color = '#22c55e';
+      };
+    };
+    // Initial render
+    renderSplitEqually();
+  </script>
+</body>
+</html>

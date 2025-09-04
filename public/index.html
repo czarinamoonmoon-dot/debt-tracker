@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debt Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="hero-bg">
+    <div class="profile-and-title">
+      <div class="profile-curve">
+        <svg width="300" height="80" viewBox="0 0 300 80">
+          <path id="curve" d="M30,70 Q150,-10 270,70" fill="transparent"/>
+          <text width="300">
+            <textPath id="welcome-text" xlink:href="#curve" startOffset="10%" font-size="28" fill="#fff" font-family="Arial" font-weight="bold"></textPath>
+        <!-- Split Bill Button -->
+  <div id="draggable-split-bill" style="position:absolute;right:18vw;top:38vh;z-index:10;cursor:move;">
+    <button onclick="window.location.href='split-bill.html'" style="width:120px;height:120px;border-radius:50%;background:#60a5fa;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.5em;box-shadow:0 4px 16px rgba(96,165,250,0.18);cursor:pointer;">
+      <span style="font-size:3em;line-height:1;">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none"><path d="M7 2v2m10-2v2M3 7h18M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Zm4-7h6m-6 4h6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
+      <span style="font-weight:bold;color:#fff;font-size:1.3em;">split bill!</span>
+    </button>
+  </div>
+          </text>
+        </svg>
+      </div>
+      <div class="profile-pic-wrapper">
+  <img id="profile-pic" src="" alt="Profile Picture">
+        <input type="file" id="profile-upload" accept="image/*" style="display:none;">
+        <button id="edit-profile-btn">Edit</button>
+      </div>
+      <div class="bg-upload-section">
+        <input type="file" id="bg-upload" accept="image/*" style="display:none;">
+        <button id="edit-bg-btn">Change Background</button>
+      </div>
+      </div>
+    </div>
+    <div class="main-title">TIME TO BE A FINANCIALLY RESPONSIBLE TEENAGER</div>
+  <button id="logout-btn" style="position:fixed;right:18px;bottom:18px;z-index:1000;background:#ef4444;color:#fff;font-weight:bold;border:none;padding:0.6em 1.5em;border-radius:8px;cursor:pointer;font-size:1em;">Logout</button>
+    <div class="recent-friends">
+      <div class="masterlist-card">
+        <div class="masterlist-header">Pick a friend<br><span class="sub">(Most recent Loan Sharks)</span></div>
+        <ul id="recent-friends-list"></ul>
+  <button onclick="window.location.href='all-friends.html'" style="font-weight:bold;color:#fff;background:#60a5fa;border:none;padding:0.5em 1.2em;border-radius:6px;cursor:pointer;font-size:1em;display:flex;align-items:center;gap:0.6em;">
+          See More (omg more frds)
+          <span style="font-size:1.2em;">&#8594;</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  <script src="app.js"></script>
+<script src="login.js"></script>
+<script>
+// Set welcome message and blank profile pic for new accounts
+const welcomeText = document.getElementById('welcome-text');
+const profilePic = document.getElementById('profile-pic');
+const username = getCurrentUser();
+if (welcomeText && username) welcomeText.textContent = `Welcome, ${username}!`;
+if (profilePic && (!localStorage.getItem('profilePic') || localStorage.getItem('profilePic') === '')) {
+  profilePic.src = 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg';
+}
+</script>
+<script src="login.js"></script>
+<script>
+document.getElementById('logout-btn').onclick = function() { logout(); };
+</script>
+<script>
+// Make split bill button draggable
+const dragDiv = document.getElementById('draggable-split-bill');
+let isDragging = false, offsetX = 0, offsetY = 0;
+dragDiv.addEventListener('mousedown', function(e) {
+  isDragging = true;
+  offsetX = e.clientX - dragDiv.getBoundingClientRect().left;
+  offsetY = e.clientY - dragDiv.getBoundingClientRect().top;
+  dragDiv.style.transition = 'none';
+});
+document.addEventListener('mousemove', function(e) {
+  if (isDragging) {
+    let x = e.clientX - offsetX;
+    let y = e.clientY - offsetY;
+    dragDiv.style.left = x + 'px';
+    dragDiv.style.top = y + 'px';
+    dragDiv.style.right = '';
+    dragDiv.style.bottom = '';
+  }
+});
+document.addEventListener('mouseup', function() {
+  isDragging = false;
+  dragDiv.style.transition = '';
+});
+// Double-tap to redirect
+const splitBtn = dragDiv.querySelector('button');
+let lastTap = 0;
+splitBtn.addEventListener('click', function(e) {
+  const now = Date.now();
+  if (now - lastTap < 350) {
+    window.location.href = 'split-bill.html';
+  }
+  lastTap = now;
+});
+</script>
+</body>
+</html>

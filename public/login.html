@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Debt-tracker Login</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg,#7f5af0 0%,#60a5fa 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 28px;
+      box-shadow: 0 8px 32px rgba(96, 90, 250, 0.18);
+      padding: 2.5em 2.5em 2em 2.5em;
+      min-width: 340px;
+      max-width: 90vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5em;
+    }
+    .login-header {
+      font-size: 2.5em;
+      font-weight: bold;
+      color: #7f5af0;
+      margin-bottom: 0.2em;
+      text-align: center;
+    }
+    .login-sub {
+      color: #666;
+      font-size: 1.2em;
+      margin-bottom: 1em;
+      text-align: center;
+    }
+    .login-input {
+      width: 100%;
+      padding: 0.7em;
+      font-size: 1.1em;
+      border-radius: 8px;
+      border: 1px solid #e0e7ff;
+      margin-bottom: 1em;
+      box-sizing: border-box;
+    }
+    .login-btn, .create-btn {
+      width: 100%;
+      padding: 0.8em;
+      font-size: 1.15em;
+      border-radius: 10px;
+      border: none;
+      background: #e0e7ff;
+      color: #222;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 0.5em;
+      transition: background 0.2s;
+    }
+    .login-btn:hover, .create-btn:hover {
+      background: #60a5fa;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="login-card">
+    <div class="login-header">Debt-tracker</div>
+    <div class="login-sub">Welcome! Please log in to continue.</div>
+    <input type="text" id="login-username" class="login-input" placeholder="Username">
+    <button class="login-btn" id="login-btn">Login</button>
+    <button class="create-btn" id="create-account-btn">Create New Account</button>
+    <div id="login-error" style="color:#ef4444;font-weight:bold;margin-top:0.5em;"></div>
+  </div>
+  <script src="login.js"></script>
+  <script>
+    document.getElementById('login-btn').onclick = function() {
+      const username = document.getElementById('login-username').value.trim();
+      if (!username) {
+        document.getElementById('login-error').textContent = 'Please enter a username.';
+        return;
+      }
+      if (login(username)) {
+        window.location.href = 'index.html';
+      } else {
+        document.getElementById('login-error').textContent = 'User not found. Please create a new account.';
+      }
+    };
+    document.getElementById('create-account-btn').onclick = function() {
+      window.location.href = 'create-account.html';
+    };
+  </script>
+</body>
+</html>
