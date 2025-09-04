@@ -332,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
       row.style.marginBottom = '1em';
       row.onclick = () => {
         localStorage.setItem('selectedFriend', friend.name);
-        window.location.href = 'friend-details.html';
+  window.location.href = 'friend-details.html';
       };
       const img = document.createElement('img');
       img.src = friend.pic;
