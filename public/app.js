@@ -18,66 +18,78 @@ if (window.location.pathname.endsWith('friend-details.html')) {
   }
   // Render table (empty for now, can be filled with transactions later)
   const tableBody = document.getElementById('fd-table-body');
-  // T-chart data storage (localStorage per friend)
-  function getTChart(friendName) {
-  let charts = JSON.parse(localStorage.getItem(`tcharts_${currentUser}`) || '{}');
-    return charts[friendName] || { paid: [], owe: [] };
-  }
-  function setTChart(friendName, data) {
-  let charts = JSON.parse(localStorage.getItem(`tcharts_${currentUser}`) || '{}');
-    charts[friendName] = data;
-  localStorage.setItem(`tcharts_${currentUser}`, JSON.stringify(charts));
-  }
 
-  function renderTChart(friendName) {
+
+    // T-chart data storage (cloud sync for transactions only)
+    async function getTChart(friendName) {
+      // Fetch all transactions from backend
+      const res = await fetch('/api/masterlist');
+      const transactions = await res.json();
+      // Filter transactions for this friend
+      const paid = transactions.filter(tx => tx.from === currentUser && tx.to === friendName)
+        .map(tx => ({ date: '', title: '', amount: tx.amount, currency: 'HKD' }));
+      const owe = transactions.filter(tx => tx.from === friendName && tx.to === currentUser)
+        .map(tx => ({ date: '', title: '', amount: tx.amount, currency: 'HKD' }));
+      return { paid, owe };
+    }
+
+    async function addTransaction(type, friendName, amount) {
+      // type: 'paid' means currentUser paid friend; 'owe' means friend paid currentUser
+      let from, to;
+      if (type === 'paid') {
+        from = currentUser;
+        to = friendName;
+      } else {
+        from = friendName;
+        to = currentUser;
+      }
+      await fetch('/api/transaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ from, to, amount: parseFloat(amount) })
+      });
+    }
+
+  async function renderTChart(friendName) {
     const tableBody = document.getElementById('fd-table-body');
     if (!tableBody) return;
     tableBody.innerHTML = '';
-    const chart = getTChart(friendName);
-    // Filter out empty rows for both columns
-    const paidRows = chart.paid.filter(row => row.date || row.title || row.amount);
-    const oweRows = chart.owe.filter(row => row.date || row.title || row.amount);
-    const maxRows = Math.max(paidRows.length, oweRows.length);
-    let friends = JSON.parse(localStorage.getItem('friends') || '[]');
-    let friendObj = friends.find(f => f.name === friendName);
-    let defaultCurrency = (friendObj && friendObj.currency) ? friendObj.currency : 'HKD';
-    for (let i = 0; i < maxRows; i++) {
-      const tr = document.createElement('tr');
-      // Currency conversion rates
-      const rates = { HKD: 1, USD: 7.8, CNY: 1.08, EUR: 8.5, JPY: 0.054, GBP: 9.9, KRW: 0.006, AUD: 5.1, CAD: 5.7 };
-      // Paid columns
-      const paid = paidRows[i] || { date: '', title: '', amount: '', currency: defaultCurrency };
-      tr.appendChild(createCell(paid.date));
-      tr.appendChild(createCell(paid.title));
-      let paidAmtHKD = parseFloat(paid.amount) || 0;
-      let paidAmtDisplay = '';
-      if (paidAmtHKD && defaultCurrency !== 'HKD') {
-        paidAmtDisplay = (paidAmtHKD / rates[defaultCurrency]).toFixed(2) + ' ' + defaultCurrency;
-      } else if (paidAmtHKD) {
-        paidAmtDisplay = paidAmtHKD.toFixed(2);
-      }
-      tr.appendChild(createCell(paidAmtDisplay));
-      // Owe columns
-      const owe = oweRows[i] || { date: '', title: '', amount: '', currency: defaultCurrency };
-      tr.appendChild(createCell(owe.date));
-      tr.appendChild(createCell(owe.title));
-      let oweAmtHKD = parseFloat(owe.amount) || 0;
-      let oweAmtDisplay = '';
-      if (oweAmtHKD && defaultCurrency !== 'HKD') {
-        oweAmtDisplay = (oweAmtHKD / rates[defaultCurrency]).toFixed(2) + ' ' + defaultCurrency;
-      } else if (oweAmtHKD) {
-        oweAmtDisplay = oweAmtHKD.toFixed(2);
-      }
-      tr.appendChild(createCell(oweAmtDisplay));
-      // Add click handlers for editing
-      tr.children[0].onclick = () => openEditPopup('paid', i, paid);
-      tr.children[1].onclick = () => openEditPopup('paid', i, paid);
-      tr.children[2].onclick = () => openEditPopup('paid', i, paid);
-      tr.children[3].onclick = () => openEditPopup('owe', i, owe);
-      tr.children[4].onclick = () => openEditPopup('owe', i, owe);
-      tr.children[5].onclick = () => openEditPopup('owe', i, owe);
-      tableBody.appendChild(tr);
-    }
+      getTChart(friendName).then(chart => {
+        const paidRows = chart.paid;
+        const oweRows = chart.owe;
+        const maxRows = Math.max(paidRows.length, oweRows.length);
+        let friends = JSON.parse(localStorage.getItem('friends') || '[]');
+        let friendObj = friends.find(f => f.name === friendName);
+        let defaultCurrency = (friendObj && friendObj.currency) ? friendObj.currency : 'HKD';
+        for (let i = 0; i < maxRows; i++) {
+          const tr = document.createElement('tr');
+          const rates = { HKD: 1, USD: 7.8, CNY: 1.08, EUR: 8.5, JPY: 0.054, GBP: 9.9, KRW: 0.006, AUD: 5.1, CAD: 5.7 };
+          const paid = paidRows[i] || { date: '', title: '', amount: '', currency: defaultCurrency };
+          tr.appendChild(createCell(paid.date));
+          tr.appendChild(createCell(paid.title));
+          let paidAmtHKD = parseFloat(paid.amount) || 0;
+          let paidAmtDisplay = '';
+          if (paidAmtHKD && defaultCurrency !== 'HKD') {
+            paidAmtDisplay = (paidAmtHKD / rates[defaultCurrency]).toFixed(2) + ' ' + defaultCurrency;
+          } else if (paidAmtHKD) {
+            paidAmtDisplay = paidAmtHKD.toFixed(2);
+          }
+          tr.appendChild(createCell(paidAmtDisplay));
+          const owe = oweRows[i] || { date: '', title: '', amount: '', currency: defaultCurrency };
+          tr.appendChild(createCell(owe.date));
+          tr.appendChild(createCell(owe.title));
+          let oweAmtHKD = parseFloat(owe.amount) || 0;
+          let oweAmtDisplay = '';
+          if (oweAmtHKD && defaultCurrency !== 'HKD') {
+            oweAmtDisplay = (oweAmtHKD / rates[defaultCurrency]).toFixed(2) + ' ' + defaultCurrency;
+          } else if (oweAmtHKD) {
+            oweAmtDisplay = oweAmtHKD.toFixed(2);
+          }
+          tr.appendChild(createCell(oweAmtDisplay));
+          tableBody.appendChild(tr);
+        }
+        // ...summary logic unchanged...
+      });
 
     // Edit popup logic
     window.openEditPopup = function(type, idx, row) {
@@ -90,8 +102,7 @@ if (window.location.pathname.endsWith('friend-details.html')) {
   if (currencySelect) currencySelect.value = row.currency || 'HKD';
   popup.style.display = 'flex';
       // Save handler for editing (replace row)
-      popupSave.onclick = function() {
-        const chart = getTChart(friendName);
+      popupSave.onclick = async function() {
         const currencySelect = document.getElementById('popup-currency');
         let inputCurrency = 'HKD';
         if (currencySelect) inputCurrency = currencySelect.value;
@@ -104,24 +115,8 @@ if (window.location.pathname.endsWith('friend-details.html')) {
         let amountHKD = (parseFloat(popupAmount.value) || 0) * (rates[inputCurrency] || 1);
         // Then convert HKD to friend's default currency
         let amountDefault = amountHKD / (rates[defaultCurrency] || 1);
-        // If editing an existing row, replace; if adding, push
-        if (typeof idx === 'number' && idx >= 0) {
-          chart[popupType][idx] = {
-            date: popupDate.value,
-            title: popupTitleInput.value,
-            amount: amountDefault.toFixed(2),
-            currency: defaultCurrency
-          };
-        } else {
-          chart[popupType].push({
-            date: popupDate.value,
-            title: popupTitleInput.value,
-            amount: amountDefault.toFixed(2),
-            currency: defaultCurrency
-          });
-        }
-        setTChart(friendName, chart);
-        renderTChart(friendName);
+        await addTransaction(popupType, friendName, amountDefault.toFixed(2));
+        await renderTChart(friendName);
         hidePopup();
       };
       // Delete handler with confirm modal
