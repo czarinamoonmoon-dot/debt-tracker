@@ -1,3 +1,77 @@
+/* Responsive styles for mobile */
+@media (max-width: 600px) {
+	body {
+		padding: 0.5em;
+	}
+	.main-title {
+		font-size: 1.3em !important;
+		text-align: center;
+		margin-top: 1em;
+	}
+	.hero-bg {
+		padding: 0.5em;
+		min-height: 0;
+	}
+	.profile-and-title {
+		flex-direction: column;
+		align-items: center;
+		gap: 1em;
+	}
+	.profile-pic-wrapper img {
+		width: 70px !important;
+		height: 70px !important;
+	}
+	.masterlist-card {
+		width: 100%;
+		max-width: 100%;
+		margin: 1em auto;
+		padding: 1em;
+		box-sizing: border-box;
+	}
+	.masterlist-header {
+		font-size: 1.1em;
+		text-align: center;
+	}
+	#draggable-split-bill {
+		position: static !important;
+		margin: 1em auto;
+		display: flex;
+		justify-content: center;
+	}
+	#draggable-split-bill button {
+		width: 80px !important;
+		height: 80px !important;
+		font-size: 1em !important;
+	}
+	.recent-friends {
+		width: 100%;
+		margin: 0 auto;
+		padding: 0;
+	}
+	.afm-friend-box {
+		flex-direction: column;
+		gap: 0.5em;
+		font-size: 1em;
+		padding: 0.5em;
+	}
+	.afm-friend-pic {
+		width: 40px !important;
+		height: 40px !important;
+	}
+	.afm-friend-name {
+		font-size: 1em !important;
+	}
+	.logout-btn {
+		position: static !important;
+		margin: 1em auto;
+		display: block;
+		width: 90%;
+		font-size: 1em;
+	}
+	button, input {
+		font-size: 1em !important;
+	}
+}
 /* Masterlist friend row hover effect */
 .afm-friend-box {
 	transition: box-shadow 0.2s, background 0.2s, transform 0.2s;
